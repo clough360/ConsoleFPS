@@ -1,23 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ConsoleFps
 {
     public class Player
     {
-        public int X { get; set; } = 0;
-        public int Y { get; set; } = 0;
-        public float Angle { get; set; } = 0;
+        public double X { get; set; } = 0;
+        public double Y { get; set; } = 0;
+        /// <summary>
+        /// angle in radians (2pi rads per circle)
+        /// </summary>
+        public double Angle { get; set; } = 0;
 
-        public void Move(int steps)
+        private const double _circle = 2d * Math.PI;
+        public void Move(double distance)
         {
-            
+            X +=  distance * Math.Cos(Angle);
+            Y +=  distance * Math.Sin(Angle);
         }
 
-        public void Rotate(int steps)
+        public void Rotate(double radians)
         {
-
+            Angle += radians;
+            if (Angle < 0)
+            {
+                Angle = Angle += _circle;
+            }
+            if (Angle > _circle)
+            {
+                Angle -= _circle;
+            }
         }
     }
 }

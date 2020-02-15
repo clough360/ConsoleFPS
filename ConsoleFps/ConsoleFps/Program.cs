@@ -11,6 +11,9 @@ namespace ConsoleFps
         [DllImport("User32.dll")]
         private static extern short GetAsyncKeyState(System.Int32 vKey);
 
+        private const double _rotationAngle = Math.PI / 4;
+        private const double _stepSize = 0.2d;
+
         static void Main(string[] args)
         {
             
@@ -65,19 +68,19 @@ namespace ConsoleFps
 
                 if (IsKeyPushedDown('A'))
                 {
-                    player.Rotate(1);
+                    player.Rotate(-_rotationAngle);
                 }
                 if (IsKeyPushedDown('W'))
                 {
-                    player.Move(1);
+                    player.Move(_stepSize);
                 }
                 if (IsKeyPushedDown('S'))
                 {
-                    player.Rotate(1);
+                    player.Rotate(_rotationAngle);
                 }
                 if (IsKeyPushedDown('Z'))
                 {
-                    player.Move(-1);
+                    player.Move(-_stepSize);
                 }
             }
 
@@ -94,7 +97,7 @@ namespace ConsoleFps
             var row = 0;
             screen.Write(debugStartX + 1, row++, $"FPS: {Math.Round(1000f / lastFrameTime, 1)}");
             screen.Write(debugStartX + 1, row++, $"FT: {lastFrameTime}ms");
-            screen.Write(debugStartX + 1, row++, $"Key: {(char)currentKey}");
+            screen.Write(debugStartX + 1, row++, $"P: {player.X:F1}, {player.Y:F1}, {player.Angle:F1}");
 
             var mapStartY = Console.WindowHeight - map.Height;
 

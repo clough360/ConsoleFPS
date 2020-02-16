@@ -11,10 +11,17 @@ namespace ConsoleFps
         /// </summary>
         public double Angle { get; set; } = 0;
 
-        public void Move(double distance)
+        public bool Move(double distance, Map map)
         {
-            X +=  distance * Math.Cos(Angle);
-            Y +=  distance * Math.Sin(Angle);
+            var newX = X + distance * Math.Cos(Angle);
+            var newY = Y + distance * Math.Sin(Angle);
+            if (map.MapTiles[(int) newX, (int) newY] == ' ')
+            {
+                X = newX;
+                Y = newY;
+                return true;
+            }
+            return false;
         }
 
         public void Rotate(double radians)

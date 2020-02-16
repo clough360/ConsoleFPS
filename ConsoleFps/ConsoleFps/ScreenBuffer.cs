@@ -19,13 +19,13 @@ namespace ConsoleFps
             Clear();
         }
 
-        private void Clear()
+        public void Clear(char background = ' ')
         {
             for (var x = 0; x < Width; x++)
             {
                 for (var y = 0; y < Height; y++)
                 {
-                    _screen[x, y] = ' ';
+                    _screen[x, y] = background;
                 }
             }
         }
@@ -50,7 +50,7 @@ namespace ConsoleFps
 
         private bool CheckBounds(int x, int y)
         {
-            return (x >= 0 && x < Width && y >= 0 && y < Width);
+            return (x >= 0 && x < Width && y >= 0 && y < Height);
         }
 
         public void Write(int x, int y, string content)

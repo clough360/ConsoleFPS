@@ -11,7 +11,6 @@ namespace ConsoleFps
         /// </summary>
         public double Angle { get; set; } = 0;
 
-        private const double _circle = 2d * Math.PI;
         public void Move(double distance)
         {
             X +=  distance * Math.Cos(Angle);
@@ -20,15 +19,7 @@ namespace ConsoleFps
 
         public void Rotate(double radians)
         {
-            Angle += radians;
-            if (Angle < 0)
-            {
-                Angle = Angle += _circle;
-            }
-            if (Angle > _circle)
-            {
-                Angle -= _circle;
-            }
+            Angle = Utils.RationaliseAngle(Angle + radians);
         }
     }
 }

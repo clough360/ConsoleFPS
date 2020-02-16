@@ -30,5 +30,10 @@ namespace ConsoleFps
 
             }
         }
+
+        public bool CheckBounds(double tileX, double tileY)
+        {
+            return tileX >= 0 && tileX < Width && tileY >= 0 && tileY < Height;
+        }
     }
 }

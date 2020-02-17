@@ -112,5 +112,21 @@ namespace ConsoleFps
             Coord dwWriteCoord,
             out IntPtr lpNumberOfCharsWritten);
 
+        // the parameters can also be passed as a string array:
+        [DllImport("Kernel32.dll", SetLastError = true)]
+        static extern uint FormatMessage(
+            uint dwFlags, 
+            IntPtr lpSource,
+            uint dwMessageId, 
+            uint dwLanguageId, 
+            ref IntPtr lpBuffer,
+            uint nSize, 
+            IntPtr Arguments);
+
+        // see the sample code
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern uint FormatMessage(uint dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, [Out] StringBuilder lpBuffer, uint nSize, string[] Arguments);
+
+
     }
 }

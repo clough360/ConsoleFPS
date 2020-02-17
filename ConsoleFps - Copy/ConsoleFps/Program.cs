@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using ConsoleGameEngine;
 using Microsoft.Win32.SafeHandles;
 
 
@@ -12,6 +11,8 @@ namespace ConsoleFps
 
     class Program
     {
+
+
         private const double _rotationAngle = Math.PI / 16;
         private const double _stepSize = 0.5d;
         private const double _fieldOfView = Math.PI / 2;
@@ -21,22 +22,20 @@ namespace ConsoleFps
 
         static void Main(string[] args)
         {
-            var screenWidth = 300;
-            var screenHeight = 150;
+            //SafeFileHandle h = Windows.CreateFile("CONOUT$", 0x40000000, 2, IntPtr.Zero, FileMode.Open, 0, IntPtr.Zero);
+            var h = Windows.CreateConsoleScreenBuffer(Windows.GENERIC_READ | Windows.GENERIC_WRITE, 0x00000003, IntPtr.Zero,  1, IntPtr.Zero);
+            //var h = Windows.CreateConsoleScreenBuffer(Windows.GENERIC_READ | Windows.GENERIC_WRITE, Windows.FILE_SHARE_WRITE | Windows.FILE_SHARE_READ, IntPtr.Zero,  Windows.CONSOLE_TEXTMODE_BUFFER, IntPtr.Zero);
+            //CheckWinApiSuccess();
+            //Windows.SetConsoleActiveScreenBuffer(h);
+            //CheckWinApiSuccess();
 
-            var viewPortHeight = screenHeight;
-            var viewPortWidth = screenWidth - 20;
+            // Verifying the PInvoke worked.
 
 
-            var consoleHandle = ConsoleApi.GetNewConsoleHandle();
-            ConsoleApi.SetActiveConsole(consoleHandle);
-            ConsoleApi.SetConsoleFont(consoleHandle, "Lucidia Console", 6);
-            var x = WindowsApi.GetLargestConsoleWindowSize(consoleHandle);
-            if (!ConsoleApi.SetConsoleSize(consoleHandle, (short)screenWidth, (short)screenHeight))
-            {
-                
-            }
+            Console.OutputEncoding = System.Text.Encoding.Unicode;
 
+            var width = 100;
+            var height = 30;
             var frameTimer = new Stopwatch();
             var lastFrameTime = 0l;
             var isAlive = true;
@@ -83,7 +82,7 @@ namespace ConsoleFps
             badGuySprite.SetRow(row++, "XXX    XXX");
             badGuySprite.SetRow(row++, "XXX    XXX");
 
-            var screen = new ScreenBuffer(screenWidth, screenHeight, ' ');
+            var screen = new ScreenBuffer(120, 30, ' ');
             var player = new Player()
             {
                 X = 5, Y=5,
@@ -99,17 +98,12 @@ namespace ConsoleFps
             {
                 frameTimer.Restart();
                 screen.Clear();
-                RenderScene(player, badGuy, map, _fieldOfView, _fieldDepth, viewPortWidth, viewPortHeight, screen);
-                WriteDebugInfo(screen, viewPortWidth + 1, lastFrameTime, map, player, badGuy, _fieldOfView);
-                ConsoleApi.WriteWholeScreen(consoleHandle, screen.RawBuffer);
-
+                RenderScene(player, badGuy, map, _fieldOfView, _fieldDepth, width, height, screen);
+                WriteDebugInfo(screen, width + 1, lastFrameTime, map, player, badGuy, _fieldOfView);
+                DrawScreenBuffer(screen);
                 lastFrameTime = frameTimer.ElapsedTicks;
 
-                var speedAdjustFactor = _ticksPerSecond / lastFrameTime / 10;
-                if (speedAdjustFactor <= 0)
-                {
-                    speedAdjustFactor = 1;
-                }
+                var speedAdjustFactor = 1;//_ticksPerSecond / lastFrameTime / 50;
 
                 if (IsKeyPushedDown('A'))
                 {
@@ -132,10 +126,35 @@ namespace ConsoleFps
                     executing = false;
                 }
 
+                var buf = new CharInfo[120 * 30];
+                var buf2 = new char[120 * 30];
+
+                for (var x = 0; x < screen.Width; x++)
+                {
+                    for (var y = 0; y < screen.Height; y++)
+                    {
+                        buf[x + y * screen.Width].Char.UnicodeChar = (char)screen.Read(x,y);
+                        buf[x + y * screen.Width].Attributes = 12;
+                        buf2[x + y * screen.Width] = (char)screen.Read(x, y);
+                    }
+                }
+
                 //MoveBadGuy(badGuy, map);
                 isAlive = !((int)player.X == (int)badGuy.X && (int)player.Y == (int)badGuy.Y);
 
-                
+                //for (var i = 0; i < 120*30; i++)
+                //{
+                //    buf[i].Char.AsciiChar = scree;
+                //    buf[i].Attributes = (short)(i % 15);
+                //}
+
+                //SmallRect rect = new SmallRect() {Left = 0, Top = 0, Right = 120, Bottom = 30};
+                //bool b = Windows.WriteConsoleOutput(h, buf,
+                //    new Coord() {X = 120, Y = 30},
+                //    new Coord() {X = 0, Y = 0},
+                //    ref rect);
+
+                //Windows.WriteConsoleOutputCharacter(h, buf2, (uint)buf2.Length, new Coord(){X=0,Y=0}, out var bytesWritten);
             }
 
             if (!isAlive)
@@ -159,6 +178,15 @@ namespace ConsoleFps
                 badGuy.Rotate(new Random().NextDouble() * Utils.CircleRadians);
             }
 
+        }
+
+        private static void CheckWinApiSuccess()
+        {
+            Int32 err = Marshal.GetLastWin32Error();
+            if (err != 0)
+            {
+                Console.WriteLine("Error: {0}", err);
+            }
         }
 
         private static void RenderScene(Player player, Player badGuy, Map map, double fov, double fieldDepth, int viewPortWidth, int viewPortHeight, ScreenBuffer screen)
@@ -222,8 +250,8 @@ namespace ConsoleFps
 
         private static void DrawWall(int x, double depthWithinField, int viewPortHeight, ScreenBuffer screen)
         {
-            var height = viewPortHeight / depthWithinField;
-            var wallStartY = (int)((viewPortHeight - height)/2d);
+            var height = 2 * viewPortHeight / depthWithinField;
+            var yStart = (int)((viewPortHeight - height)/2d);
 
             for (var y = 0; y < viewPortHeight; y++)
             {
@@ -234,7 +262,7 @@ namespace ConsoleFps
                 var displayChar = ' ';
 
                 // ceiling
-                if (y < wallStartY)
+                if (y < yStart)
                 {
                     if (y < 4)
                     {
@@ -254,7 +282,7 @@ namespace ConsoleFps
                     }
                 }
                 // wall
-                else if (y >= wallStartY && y <= wallStartY + height)
+                else if (y >= yStart && y <= yStart + height)
                 {
                     if (depthWithinField < 3)
                     {
@@ -276,23 +304,22 @@ namespace ConsoleFps
                 // floor
                 else
                 {
-                    var floorY = y - wallStartY - height;
-                    var distanceFromPlayer = viewPortHeight - y;
-                    if (distanceFromPlayer < 4)
+                    var floorY = y - yStart - height;
+                    if (floorY < 4)
                     {
-                        displayChar = '#';
+                        displayChar = '\u2581';
                     }
-                    else if (distanceFromPlayer < 8)
+                    else if (floorY < 8)
                     {
-                        displayChar = '@';
+                        displayChar = '\u2582';
                     }
-                    else if (distanceFromPlayer < 12)
+                    else if (floorY < 12)
                     {
-                        displayChar = '*';
+                        displayChar = '\u2583';
                     }
-                    else if (distanceFromPlayer < 16)
+                    else if (floorY < 16)
                     {
-                        displayChar = '.';
+                        displayChar = '\u2584';
                     }
                 }
 

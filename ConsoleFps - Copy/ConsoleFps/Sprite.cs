@@ -4,12 +4,12 @@
     {
         public Sprite(int width, int height)
         {
-            Pixels = new char[width, height];
+            Pixels = new int[width, height];
             Width = width;
             Height = height;
         }
 
-        public char[,] Pixels { get; }
+        public int[,] Pixels { get; }
         public int Height { get; }
 
         public int Width { get; }

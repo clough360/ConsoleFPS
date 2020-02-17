@@ -1,47 +1,51 @@
-﻿using System;
-
-namespace ConsoleFps
+﻿namespace ConsoleFps
 {
     public class ScreenBuffer
     {
+        private int[,] _screen;
         public int Width { get; }
         public int Height { get; }
-        public char TransparentPixel { get; }
-        public char BackgroundPixel { get; }
-        public char[] RawBuffer { get; }
+        public int TransparentPixel { get; }
+        public int BackgroundPixel { get; }
 
-        public ScreenBuffer(int width, int height, char transparentPixel = ' ', char backgroundPixel = ' ')
+        public ScreenBuffer(int width, int height, int transparentPixel = ' ', int backgroundPixel = ' ')
         {
             Width = width;
             Height = height;
             TransparentPixel = transparentPixel;
             BackgroundPixel = backgroundPixel;
-            RawBuffer = new char[width * height];
+            _screen = new int[width,height];
             Clear();
         }
 
         public void Clear()
         {
-            Array.Fill(RawBuffer, BackgroundPixel);
+            for (var x = 0; x < Width; x++)
+            {
+                for (var y = 0; y < Height; y++)
+                {
+                    _screen[x, y] = BackgroundPixel;
+                }
+            }
         }
 
-        public void Write(int x, int y, char content)
+        public void Write(int x, int y, int content)
         {
             if (!CheckBounds(x, y) || content == TransparentPixel)
             {
                 return;
             }
-            RawBuffer[x + y * Width] = content;
+            _screen[x, y] = content;
         }
 
 
-        public char Read(int x, int y)
+        public int Read(int x, int y)
         {
             if (!CheckBounds(x, y))
             {
                 return ' ';
             }
-            return RawBuffer[x + y * Width];
+            return _screen[x, y];
         }
 
         private bool CheckBounds(int x, int y)
@@ -54,7 +58,7 @@ namespace ConsoleFps
             var charIdx = 0;
             while (x < Width && charIdx < content.Length)
             {
-                RawBuffer[x + y * Width] = content[charIdx];
+                _screen[x, y] = content[charIdx];
                 x++;
                 charIdx++;
             }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 
 namespace ConsoleFps
 {
@@ -52,9 +52,10 @@ namespace ConsoleFps
         public void Write(int x, int y, string content)
         {
             var charIdx = 0;
+
             while (x < Width && charIdx < content.Length)
             {
-                RawBuffer[x + y * Width] = content[charIdx];
+                //RawBuffer[1] = content[charIdx];
                 x++;
                 charIdx++;
             }
@@ -64,7 +65,7 @@ namespace ConsoleFps
         {
             if (Read(x, y) == BackgroundPixel)
             {
-                Write(x,y,content);
+                Write(x, y, content);
             }
         }
     }

@@ -111,5 +111,10 @@ namespace ConsoleGameEngine
         public static extern Coord GetLargestConsoleWindowSize(
             IntPtr hConsoleOutput
         );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleTitle(
+            string lpConsoleTitle
+        );
     }
 }

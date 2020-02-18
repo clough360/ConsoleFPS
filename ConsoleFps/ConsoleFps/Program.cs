@@ -14,7 +14,7 @@ namespace ConsoleFps
     {
         private const double _rotationAngle = Math.PI / 16;
         private const double _stepSize = 0.5d;
-        private const double _fieldOfView = Math.PI / 2;
+        private const double _fieldOfView = Math.PI / 4;
         private const double _fieldDepth = 16;
         private const char _emptyMapSpace = ' ';
         private const int _ticksPerSecond = 10000*1000; //10k ticks per ms
@@ -30,7 +30,7 @@ namespace ConsoleFps
 
             var consoleHandle = ConsoleApi.GetNewConsoleHandle();
             ConsoleApi.SetActiveConsole(consoleHandle);
-            ConsoleApi.SetConsoleFont(consoleHandle, "Lucidia Console", 6);
+            ConsoleApi.SetConsoleFont(consoleHandle, "Consolas", 6);
             var x = WindowsApi.GetLargestConsoleWindowSize(consoleHandle);
             if (!ConsoleApi.SetConsoleSize(consoleHandle, (short)screenWidth, (short)screenHeight))
             {
@@ -97,6 +97,7 @@ namespace ConsoleFps
 
             while (executing && isAlive)
             {
+                ConsoleApi.SetConsoleTitle(((int)(_ticksPerSecond / (double)lastFrameTime)).ToString());
                 frameTimer.Restart();
                 screen.Clear();
                 RenderScene(player, badGuy, map, _fieldOfView, _fieldDepth, viewPortWidth, viewPortHeight, screen);
@@ -222,7 +223,7 @@ namespace ConsoleFps
 
         private static void DrawWall(int x, double depthWithinField, int viewPortHeight, ScreenBuffer screen)
         {
-            var height = viewPortHeight / depthWithinField;
+            var height = viewPortHeight / (depthWithinField);
             var wallStartY = (int)((viewPortHeight - height)/2d);
 
             for (var y = 0; y < viewPortHeight; y++)
@@ -232,7 +233,6 @@ namespace ConsoleFps
                     continue;
                 }
                 var displayChar = ' ';
-
                 // ceiling
                 if (y < wallStartY)
                 {
@@ -256,21 +256,25 @@ namespace ConsoleFps
                 // wall
                 else if (y >= wallStartY && y <= wallStartY + height)
                 {
-                    if (depthWithinField < 3)
+                    if (depthWithinField < 2)
                     {
                         displayChar = '\u2588';
                     }
-                    else if (depthWithinField < 8)
+                    else if (depthWithinField < 3)
                     {
                         displayChar = '\u2593';
                     }
-                    else if (depthWithinField < 12)
+                    else if (depthWithinField < 6)
                     {
                         displayChar = '\u2592';
                     }
-                    else if (depthWithinField < 16)
+                    else if (depthWithinField < 9)
                     {
                         displayChar = '\u2591';
+                    }
+                    else if (depthWithinField < 16)
+                    {
+                        displayChar = '.';
                     }
                 }
                 // floor

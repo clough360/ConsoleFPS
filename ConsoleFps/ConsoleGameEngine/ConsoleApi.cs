@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace ConsoleGameEngine
 {
@@ -61,6 +62,11 @@ namespace ConsoleGameEngine
             var rect = new WindowsApi.SmallRect(0, 0, (short)(width-1), (short)(height-1));
             WindowsApi.SetConsoleScreenBufferSize(h, new WindowsApi.Coord(width, height));
             return WindowsApi.SetConsoleWindowInfo(h, true, ref rect);
+        }
+
+        public static bool SetConsoleTitle(string text)
+        {
+            return WindowsApi.SetConsoleTitle(text);
         }
     }
 }

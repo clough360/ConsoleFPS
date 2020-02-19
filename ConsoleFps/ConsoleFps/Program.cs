@@ -122,11 +122,22 @@ namespace ConsoleFps
                 var idx = 0;
                 foreach (var bv in b)
                 {
-                    ci[idx++] = new WindowsApi.CharInfo()
+                    if (bv == 1)
                     {
-                        Char = new WindowsApi.CharUnion() { UnicodeChar = bv },
-                        Attributes = 0x7,
-                    };
+                        ci[idx++] = new WindowsApi.CharInfo()
+                        {
+                            Char = new WindowsApi.CharUnion() { UnicodeChar = ' ' },
+                            Attributes = 0x10,
+                        };
+                    }
+                    else
+                    {
+                        ci[idx++] = new WindowsApi.CharInfo()
+                        {
+                            Char = new WindowsApi.CharUnion() { UnicodeChar = bv },
+                            Attributes = 0x7,
+                        };
+                    }
                 }
 
                 WindowsApi.SmallRect writeRegion = new WindowsApi.SmallRect(0,0, (short)(screenWidth-1), (short)(screenHeight - 1));
@@ -269,31 +280,38 @@ namespace ConsoleFps
                 }
                 var displayChar = ' ';
                 // wall
-                if (depthWithinField < 2)
+
+                if (y < wallStartY)
                 {
-                    displayChar = '\u2588';
-                }
-                else if (depthWithinField < 3)
-                {
-                    displayChar = '\u2593';
-                }
-                else if (depthWithinField < 6)
-                {
-                    displayChar = '\u2592';
-                }
-                else if (depthWithinField < 9)
-                {
-                    displayChar = '\u2591';
-                }
-                else if (depthWithinField < 16)
-                {
-                    displayChar = '=';
+                    displayChar = (char)1;
                 }
                 else
                 {
-                    displayChar = '.';
+                    if (depthWithinField < 2)
+                    {
+                        displayChar = '\u2588';
+                    }
+                    else if (depthWithinField < 3)
+                    {
+                        displayChar = '\u2593';
+                    }
+                    else if (depthWithinField < 6)
+                    {
+                        displayChar = '\u2592';
+                    }
+                    else if (depthWithinField < 9)
+                    {
+                        displayChar = '\u2591';
+                    }
+                    else if (depthWithinField < 16)
+                    {
+                        displayChar = '=';
+                    }
+                    else
+                    {
+                        displayChar = '.';
+                    }
                 }
-
                 screen.Write(x, y, displayChar);
 
             }

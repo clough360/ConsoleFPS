@@ -18,6 +18,25 @@ namespace ConsoleGameEngine
         public const int LF_FACESIZE = 32;
         public static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
+
+        [DllImport("User32.dll")]
+        public static extern short GetAsyncKeyState(System.Int32 vKey);
+
+        [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode)]
+        public struct CharUnion
+        {
+            [FieldOffset(0)] public char UnicodeChar;
+            [FieldOffset(0)] public byte AsciiChar;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct CharInfo
+        {
+            [FieldOffset(0)] public CharUnion Char;
+            [FieldOffset(2)] public short Attributes;
+        }
+
+
         [StructLayout(LayoutKind.Sequential)]
         public struct Coord
         {
@@ -67,6 +86,23 @@ namespace ConsoleGameEngine
             [MarshalAs(UnmanagedType.U4)] uint nLength,
             Coord dwWriteCoord,
             out IntPtr lpNumberOfCharsWritten);
+
+        [DllImport("kernel32.dll", EntryPoint= "WriteConsoleOutputCharacter", SetLastError = true, CharSet = CharSet.Unicode)]
+        public unsafe static extern bool WriteConsoleOutputCharacterAAA(
+            IntPtr hConsoleOutput,
+            char* chars,
+            [MarshalAs(UnmanagedType.U4)] uint nLength,
+            Coord dwWriteCoord,
+            out IntPtr lpNumberOfCharsWritten);
+
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool WriteConsoleOutput(
+            IntPtr hConsoleOutput,
+            CharInfo[] lpBuffer,
+            Coord dwbufferSize,
+            Coord dwBufferCoord,
+            ref SmallRect lpWriteRegion);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public unsafe struct CONSOLE_FONT_INFO_EX

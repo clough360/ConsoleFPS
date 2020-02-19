@@ -14,7 +14,7 @@ namespace ConsoleGameEngine
         public static IntPtr GetNewConsoleHandle()
         {
             //var h = WindowsApi.CreateConsoleScreenBuffer(WindowsApi.GENERIC_WRITE, 0x00000000, IntPtr.Zero, WindowsApi.CONSOLE_TEXTMODE_BUFFER, IntPtr.Zero);
-            var h = WindowsApi.CreateConsoleScreenBuffer(WindowsApi.GENERIC_WRITE, 0x00000000, IntPtr.Zero, 1, IntPtr.Zero);
+            var h = WindowsApi.CreateConsoleScreenBuffer(WindowsApi.GENERIC_WRITE | WindowsApi.GENERIC_READ, WindowsApi.FILE_SHARE_READ | WindowsApi.FILE_SHARE_WRITE, IntPtr.Zero, 1, IntPtr.Zero);
             WindowsApi.CheckWinApiSuccess();
             return h;
         }
@@ -28,7 +28,7 @@ namespace ConsoleGameEngine
             WindowsApi.SetConsoleActiveScreenBuffer(h);
         }
 
-        public static void WriteWholeScreen(IntPtr h, char[] screenRawBuffer)
+        public static void WriteWholeScreen(IntPtr h, ref char[] screenRawBuffer)
         {
             WindowsApi.WriteConsoleOutputCharacter(h, screenRawBuffer, (uint)screenRawBuffer.Length, new WindowsApi.Coord(0,0), out var bytesWritten);
         }

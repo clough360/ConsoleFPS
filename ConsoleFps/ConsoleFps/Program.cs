@@ -8,8 +8,6 @@ using Microsoft.Win32.SafeHandles;
 
 namespace ConsoleFps
 {
-    
-
     class Program
     {
         private const double _rotationAngle = Math.PI / 16;
@@ -19,10 +17,10 @@ namespace ConsoleFps
         private const char _emptyMapSpace = ' ';
         private const int _ticksPerSecond = 10000*1000; //10k ticks per ms
 
-        static void Main(string[] args)
+        unsafe static void Main(string[] args)
         {
-            var screenWidth = 300;
-            var screenHeight = 150;
+            short screenWidth = 300;
+            short screenHeight = 150;
 
             var viewPortHeight = screenHeight;
             var viewPortWidth = screenWidth - 20;
@@ -38,27 +36,38 @@ namespace ConsoleFps
             }
 
             var frameTimer = new Stopwatch();
-            var lastFrameTime = 0l;
+            var lastFrameTime = 0L;
             var isAlive = true;
 
-            var map = new Map(16,16);
+            var map = new Map(16,27);
             var row = 0;
-            map.SetRow(row++,"1111111111111111");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"11111111       1");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"1     111      1");
-            map.SetRow(row++,"1       1      1");
-            map.SetRow(row++,"1       1      1");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"111111   1111111");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"1              1");
-            map.SetRow(row++,"1111111111111111");
+            map.SetRow(row++, "1111111111111111");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "11111111       1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1     111      1");
+            map.SetRow(row++, "1       1      1");
+            map.SetRow(row++, "1       1      1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "111111   1111111");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "11    1111111111");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1     111      1");
+            map.SetRow(row++, "1       1      1");
+            map.SetRow(row++, "1       1      1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "111111   1111111");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1              1");
+            map.SetRow(row++, "1111111111111111");
 
             row = 0;
             var badGuySprite = new Sprite(10, 20);
@@ -95,6 +104,9 @@ namespace ConsoleFps
             };
             var executing = true;
 
+            
+            var coord = new WindowsApi.Coord(0, 0);
+
             while (executing && isAlive)
             {
                 ConsoleApi.SetConsoleTitle(((int)(_ticksPerSecond / (double)lastFrameTime)).ToString());
@@ -102,9 +114,26 @@ namespace ConsoleFps
                 screen.Clear();
                 RenderScene(player, badGuy, map, _fieldOfView, _fieldDepth, viewPortWidth, viewPortHeight, screen);
                 WriteDebugInfo(screen, viewPortWidth + 1, lastFrameTime, map, player, badGuy, _fieldOfView);
-                ConsoleApi.WriteWholeScreen(consoleHandle, screen.RawBuffer);
+                //ConsoleApi.WriteWholeScreen(consoleHandle, ref b);
+                var b = screen.RawBuffer;
+                //WindowsApi.WriteConsoleOutputCharacter(consoleHandle, b, (uint)36000, coord, out var bytesWritten);
 
+                var ci = new WindowsApi.CharInfo[b.Length];
+                var idx = 0;
+                foreach (var bv in b)
+                {
+                    ci[idx++] = new WindowsApi.CharInfo()
+                    {
+                        Char = new WindowsApi.CharUnion() { UnicodeChar = bv },
+                        Attributes = 0x7,
+                    };
+                }
+
+                WindowsApi.SmallRect writeRegion = new WindowsApi.SmallRect(0,0, (short)(screenWidth-1), (short)(screenHeight - 1));
+                var bufferSize = new WindowsApi.Coord((short)screenWidth, (short)screenHeight);
+                WindowsApi.WriteConsoleOutput(consoleHandle, ci, bufferSize, coord, ref writeRegion);
                 lastFrameTime = frameTimer.ElapsedTicks;
+
 
                 var speedAdjustFactor = _ticksPerSecond / lastFrameTime / 10;
                 if (speedAdjustFactor <= 0)
@@ -133,10 +162,8 @@ namespace ConsoleFps
                     executing = false;
                 }
 
-                //MoveBadGuy(badGuy, map);
-                isAlive = !((int)player.X == (int)badGuy.X && (int)player.Y == (int)badGuy.Y);
-
-                
+                MoveBadGuy(badGuy, map, speedAdjustFactor);
+                //isAlive = !((int)player.X == (int)badGuy.X && (int)player.Y == (int)badGuy.Y);
             }
 
             if (!isAlive)
@@ -147,15 +174,15 @@ namespace ConsoleFps
             }
         }
 
-        private static void MoveBadGuy(Player badGuy, Map map)
+        private static void MoveBadGuy(Player badGuy, Map map, long speedAdjustFactor)
         {
             var changeAngle = new Random().Next(0, 10) > 8;
 
             if (changeAngle)
             {
-                badGuy.Rotate((new Random().NextDouble() - 0.5) * _rotationAngle);
+                badGuy.Rotate((new Random().NextDouble() - 0.5) * _rotationAngle / speedAdjustFactor);
             }
-            if (!badGuy.Move(0.3, map))
+            if (!badGuy.Move(_stepSize / speedAdjustFactor, map))
             {
                 badGuy.Rotate(new Random().NextDouble() * Utils.CircleRadians);
             }
@@ -169,7 +196,7 @@ namespace ConsoleFps
             for (var x = 0; x < viewPortWidth; x++)
             {
                 var doneBadGuy = false;
-                for (var depth = 1d; depth < fieldDepth; depth+= 0.2)
+                for (var depth = 1d; depth <= fieldDepth; depth+= 0.1)
                 {
                     var rayAngle = Utils.RationaliseAngle(player.Angle + rayAngleRelative);
                     var rayX = player.X + depth * Math.Cos(rayAngle);
@@ -191,6 +218,10 @@ namespace ConsoleFps
                         DrawBadGuy(x, depth, viewPortHeight, screen, rayX, rayAngle, badGuy);
                         doneBadGuy = true;
                     }
+                    if (depth >= fieldDepth)
+                    {
+                        // we reached here without drawing a wall / sky / floor
+                    }
                 }
                 rayAngleRelative += increment;
             }
@@ -209,8 +240,12 @@ namespace ConsoleFps
             var spriteCol = (int)(xProportion * badGuy.Sprite.Width);
 
             // always draw bad guy as if he was facing you, as he looks weird with perspective
-            for ( var y = 0; y < height; y++)
+            for ( var y = 0; y < height && y+yStart < viewPortHeight; y++)
             {
+                if (y+yStart < 0)
+                {
+                    continue;
+                }
                 var spriteY = (int)((badGuy.Sprite.Height / height) * y);
      
                 if (spriteY >= badGuy.Sprite.Height)
@@ -226,81 +261,40 @@ namespace ConsoleFps
             var height = viewPortHeight / (depthWithinField);
             var wallStartY = (int)((viewPortHeight - height)/2d);
 
-            for (var y = 0; y < viewPortHeight; y++)
+            for (var y = 0; y < viewPortHeight && y <= wallStartY + height; y++)
             {
                 if (screen.Read(x, y) != ' ')
                 {
                     continue;
                 }
                 var displayChar = ' ';
-                // ceiling
-                if (y < wallStartY)
-                {
-                    if (y < 4)
-                    {
-                        displayChar = '\u2584';
-                    }
-                    else if (y < 8)
-                    {
-                        displayChar = '\u2583';
-                    }
-                    else if (y < 12)
-                    {
-                        displayChar = '\u2582';
-                    }
-                    else if (y < 16)
-                    {
-                        displayChar = '\u2581';
-                    }
-                }
                 // wall
-                else if (y >= wallStartY && y <= wallStartY + height)
+                if (depthWithinField < 2)
                 {
-                    if (depthWithinField < 2)
-                    {
-                        displayChar = '\u2588';
-                    }
-                    else if (depthWithinField < 3)
-                    {
-                        displayChar = '\u2593';
-                    }
-                    else if (depthWithinField < 6)
-                    {
-                        displayChar = '\u2592';
-                    }
-                    else if (depthWithinField < 9)
-                    {
-                        displayChar = '\u2591';
-                    }
-                    else if (depthWithinField < 16)
-                    {
-                        displayChar = '.';
-                    }
+                    displayChar = '\u2588';
                 }
-                // floor
+                else if (depthWithinField < 3)
+                {
+                    displayChar = '\u2593';
+                }
+                else if (depthWithinField < 6)
+                {
+                    displayChar = '\u2592';
+                }
+                else if (depthWithinField < 9)
+                {
+                    displayChar = '\u2591';
+                }
+                else if (depthWithinField < 16)
+                {
+                    displayChar = '=';
+                }
                 else
                 {
-                    var floorY = y - wallStartY - height;
-                    var distanceFromPlayer = viewPortHeight - y;
-                    if (distanceFromPlayer < 4)
-                    {
-                        displayChar = '#';
-                    }
-                    else if (distanceFromPlayer < 8)
-                    {
-                        displayChar = '@';
-                    }
-                    else if (distanceFromPlayer < 12)
-                    {
-                        displayChar = '*';
-                    }
-                    else if (distanceFromPlayer < 16)
-                    {
-                        displayChar = '.';
-                    }
+                    displayChar = '.';
                 }
 
-                screen.WriteIfNotSet(x, y, displayChar);
+                screen.Write(x, y, displayChar);
 
             }
         }
@@ -319,7 +313,7 @@ namespace ConsoleFps
 
         public static bool IsKeyPushedDown(char key)
         {
-            return 0 != (Windows.GetAsyncKeyState((ushort)key) & 0x8000);
+            return 0 != (WindowsApi.GetAsyncKeyState((ushort)key) & 0x8000);
         }
 
         private static void WriteDebugInfo(ScreenBuffer screen , int debugStartX, long lastFrameTimeTicks, Map map, Player player, Player badGuy, double fov)

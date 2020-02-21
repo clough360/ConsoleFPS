@@ -1,39 +1,32 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
 using ConsoleGameEngine;
-using Microsoft.Win32.SafeHandles;
-
 
 namespace ConsoleFps
 {
-    class Program
+    public class Program
     {
         private const double _rotationAngle = Math.PI / 16;
         private const double _stepSize = 0.5d;
-        private const double _fieldOfView = Math.PI / 4;
-        private const double _fieldDepth = 16;
+        private const double _fieldOfView = Math.PI / 8;
+        private const double _fieldDepth = 20;
         private const char _emptyMapSpace = ' ';
         private const int _ticksPerSecond = 10000*1000; //10k ticks per ms
+        private const double _rayDepthSampleDistance = 0.05; // granularity of depth sampling in ray trace
 
         unsafe static void Main(string[] args)
         {
-            short screenWidth = 300;
+            short screenWidth = 330;
             short screenHeight = 150;
 
             var viewPortHeight = screenHeight;
             var viewPortWidth = screenWidth - 20;
 
-
             var consoleHandle = ConsoleApi.GetNewConsoleHandle();
             ConsoleApi.SetActiveConsole(consoleHandle);
             ConsoleApi.SetConsoleFont(consoleHandle, "Consolas", 6);
             var x = WindowsApi.GetLargestConsoleWindowSize(consoleHandle);
-            if (!ConsoleApi.SetConsoleSize(consoleHandle, (short)screenWidth, (short)screenHeight))
-            {
-                
-            }
+            ConsoleApi.SetConsoleSize(consoleHandle, (short)screenWidth, (short)screenHeight);
 
             var frameTimer = new Stopwatch();
             var lastFrameTime = 0L;
@@ -69,8 +62,8 @@ namespace ConsoleFps
             map.SetRow(row++, "1              1");
             map.SetRow(row++, "1111111111111111");
 
-            row = 0;
             var badGuySprite = new Sprite(10, 20);
+            row = 0;
             badGuySprite.SetRow(row++, "          ");
             badGuySprite.SetRow(row++, "          ");
             badGuySprite.SetRow(row++, "          ");
@@ -91,19 +84,62 @@ namespace ConsoleFps
             badGuySprite.SetRow(row++, "XXX    XXX");
             badGuySprite.SetRow(row++, "XXX    XXX");
             badGuySprite.SetRow(row++, "XXX    XXX");
+
+            var wallTexture = new Sprite(40, 40);
+            row = 0;
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
 
             var screen = new ScreenBuffer(screenWidth, screenHeight, ' ');
             var player = new Player()
             {
-                X = 5, Y=5,
+                X = 5, Y = 5, Angle = Math.PI / 8f
             };
 
             var badGuy = new Player()
             {
-                X=9, Y=5, Sprite = badGuySprite,
+                X=11, Y=5, Sprite = badGuySprite,
             };
             var executing = true;
-
             
             var coord = new WindowsApi.Coord(0, 0);
 
@@ -112,11 +148,9 @@ namespace ConsoleFps
                 ConsoleApi.SetConsoleTitle(((int)(_ticksPerSecond / (double)lastFrameTime)).ToString());
                 frameTimer.Restart();
                 screen.Clear();
-                RenderScene(player, badGuy, map, _fieldOfView, _fieldDepth, viewPortWidth, viewPortHeight, screen);
+                RenderScene(player, badGuy, map, _fieldOfView, _fieldDepth, viewPortWidth, viewPortHeight, screen, wallTexture);
                 WriteDebugInfo(screen, viewPortWidth + 1, lastFrameTime, map, player, badGuy, _fieldOfView);
-                //ConsoleApi.WriteWholeScreen(consoleHandle, ref b);
                 var b = screen.RawBuffer;
-                //WindowsApi.WriteConsoleOutputCharacter(consoleHandle, b, (uint)36000, coord, out var bytesWritten);
 
                 var ci = new WindowsApi.CharInfo[b.Length];
                 var idx = 0;
@@ -128,6 +162,14 @@ namespace ConsoleFps
                         {
                             Char = new WindowsApi.CharUnion() { UnicodeChar = ' ' },
                             Attributes = 0x10,
+                        };
+                    }
+                    else if (bv == 2)
+                    {
+                        ci[idx++] = new WindowsApi.CharInfo()
+                        {
+                            Char = new WindowsApi.CharUnion() { UnicodeChar = ' ' },
+                            Attributes = 0x28,
                         };
                     }
                     else
@@ -200,14 +242,14 @@ namespace ConsoleFps
 
         }
 
-        private static void RenderScene(Player player, Player badGuy, Map map, double fov, double fieldDepth, int viewPortWidth, int viewPortHeight, ScreenBuffer screen)
+        private static void RenderScene(Player player, Player badGuy, Map map, double fov, double fieldDepth, int viewPortWidth, int viewPortHeight, ScreenBuffer screen, Sprite wallSprite)
         {
             var increment = fov / viewPortWidth;
             var rayAngleRelative = 0 - (fov / 2d);
             for (var x = 0; x < viewPortWidth; x++)
             {
                 var doneBadGuy = false;
-                for (var depth = 1d; depth <= fieldDepth; depth+= 0.1)
+                for (var depth = 1d; depth <= fieldDepth; depth+= _rayDepthSampleDistance)
                 {
                     var rayAngle = Utils.RationaliseAngle(player.Angle + rayAngleRelative);
                     var rayX = player.X + depth * Math.Cos(rayAngle);
@@ -220,13 +262,13 @@ namespace ConsoleFps
                     if (map.MapTiles[(int)rayX, (int)rayY] != _emptyMapSpace)
                     {
                         // wall
-                        DrawWall(x, depth, viewPortHeight, screen);
+                        DrawWall(x, depth, viewPortHeight, screen, rayX, rayY, wallSprite);
                         break;
                     }
                     if (!doneBadGuy && ((int)rayX == (int) badGuy.X && (int)rayY == (int) badGuy.Y))
                     {
                         // bad guy
-                        DrawBadGuy(x, depth, viewPortHeight, screen, rayX, rayAngle, badGuy);
+                        DrawBadGuy(x, depth, viewPortHeight, screen, rayX, rayY, rayAngle, badGuy, player);
                         doneBadGuy = true;
                     }
                     if (depth >= fieldDepth)
@@ -238,17 +280,45 @@ namespace ConsoleFps
             }
         }
 
-        private static void DrawBadGuy(int x, double depthWithinField, int viewPortHeight, ScreenBuffer screen, double badGuyRayHitX, double rayAngle, Player badGuy)
+        public static double CalculateBoxHitProportion(double rayHitX, double rayHitY)
+        {
+            var boxMidX = (int)rayHitX + 0.5;
+            var boxMidY = (int)rayHitY + 0.5;
+
+            // work out where on the box we hit by working out the quadrant using atan2 (rotated a quarter turn)
+            var hitQuadrantAngle = Math.Atan2(rayHitY - boxMidY, rayHitX - boxMidX);
+            double sampleX;
+            if (hitQuadrantAngle >= -Math.PI * .75 && hitQuadrantAngle < -Math.PI * .25)
+            {
+                // top face
+                sampleX = (int)rayHitX + 1 - rayHitX;
+            }
+            else if (hitQuadrantAngle >= -Math.PI * .25f && hitQuadrantAngle < Math.PI * .25)
+            {
+                // right face
+                sampleX = (int)rayHitY + 1 - rayHitY;
+            }
+            else if (hitQuadrantAngle >= Math.PI * .25 && hitQuadrantAngle < Math.PI * .75)
+            {
+                // bottom face
+                sampleX = rayHitX - (int)rayHitX;
+            }
+            else
+            {
+                // left face
+                sampleX = rayHitY - (int)rayHitY;
+            }
+
+            return sampleX;
+        }
+
+        private static void DrawBadGuy(int x, double depthWithinField, int viewPortHeight, ScreenBuffer screen, double badGuyRayHitX, double badGuyRayHitY, double rayAngle, Player badGuy, Player player)
         {
             var height = 2 * viewPortHeight / depthWithinField;
             var yStart = (int)((viewPortHeight - height) / 2d);
 
-            // which column (part) of bad guy is this?
-            // the ray hit bad guy at rayAngle at rayHitX
-            // badGyRayHitX should be between x and x+1, determine the proportion of the way through
-            
-            var xProportion = (badGuyRayHitX - (int)badGuy.X);
-            var spriteCol = (int)(xProportion * badGuy.Sprite.Width);
+            var xProportion = CalculateBoxHitProportion(badGuyRayHitX, badGuyRayHitY);
+            var spriteCol = (int)(xProportion * (badGuy.Sprite.Width-1));
 
             // always draw bad guy as if he was facing you, as he looks weird with perspective
             for ( var y = 0; y < height && y+yStart < viewPortHeight; y++)
@@ -267,50 +337,61 @@ namespace ConsoleFps
             }
         }
 
-        private static void DrawWall(int x, double depthWithinField, int viewPortHeight, ScreenBuffer screen)
+        private static void DrawWall(int x, double depthWithinField, int viewPortHeight, ScreenBuffer screen, double rayHitX, double rayHitY, Sprite wallSprite)
         {
             var height = viewPortHeight / (depthWithinField);
             var wallStartY = (int)((viewPortHeight - height)/2d);
 
-            for (var y = 0; y < viewPortHeight && y <= wallStartY + height; y++)
+            var xProportion = CalculateBoxHitProportion(rayHitX, rayHitY);
+
+            for (var y = 0; y < viewPortHeight; y++)
             {
                 if (screen.Read(x, y) != ' ')
                 {
                     continue;
                 }
                 var displayChar = ' ';
-                // wall
 
                 if (y < wallStartY)
                 {
+                    // sky
                     displayChar = (char)1;
+                }
+                else if (y >= wallStartY && y< wallStartY + height)
+                {
+                    var spriteY = (int)((wallSprite.Height / height) * (y-wallStartY));
+                    displayChar = wallSprite.Pixels[(int)(xProportion * wallSprite.Width), spriteY];
+
+                    //// wall
+                    //if (depthWithinField < 2)
+                    //{
+                    //    displayChar = '\u2588';
+                    //}
+                    //else if (depthWithinField < 3)
+                    //{
+                    //    displayChar = '\u2593';
+                    //}
+                    //else if (depthWithinField < 6)
+                    //{
+                    //    displayChar = '\u2592';
+                    //}
+                    //else if (depthWithinField < 9)
+                    //{
+                    //    displayChar = '\u2591';
+                    //}
+                    //else if (depthWithinField < 16)
+                    //{
+                    //    displayChar = '=';
+                    //}
+                    //else
+                    //{
+                    //    displayChar = '.';
+                    //}
                 }
                 else
                 {
-                    if (depthWithinField < 2)
-                    {
-                        displayChar = '\u2588';
-                    }
-                    else if (depthWithinField < 3)
-                    {
-                        displayChar = '\u2593';
-                    }
-                    else if (depthWithinField < 6)
-                    {
-                        displayChar = '\u2592';
-                    }
-                    else if (depthWithinField < 9)
-                    {
-                        displayChar = '\u2591';
-                    }
-                    else if (depthWithinField < 16)
-                    {
-                        displayChar = '=';
-                    }
-                    else
-                    {
-                        displayChar = '.';
-                    }
+                    // floor
+                    displayChar = (char)2;
                 }
                 screen.Write(x, y, displayChar);
 

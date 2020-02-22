@@ -6,7 +6,7 @@ namespace ConsoleFps
 {
     public class Program
     {
-        private const double _rotationAngle = Math.PI / 16;
+        private const double _rotationAngle = Math.PI / 32;
         private const double _stepSize = 0.5d;
         private const double _fieldOfView = Math.PI / 8;
         private const double _fieldDepth = 20;
@@ -16,15 +16,15 @@ namespace ConsoleFps
 
         unsafe static void Main(string[] args)
         {
-            short screenWidth = 330;
-            short screenHeight = 150;
+            short screenWidth = 830;
+            short screenHeight = 250;
 
             var viewPortHeight = screenHeight;
             var viewPortWidth = screenWidth - 20;
 
             var consoleHandle = ConsoleApi.GetNewConsoleHandle();
             ConsoleApi.SetActiveConsole(consoleHandle);
-            ConsoleApi.SetConsoleFont(consoleHandle, "Consolas", 6);
+            ConsoleApi.SetConsoleFont(consoleHandle, "Consolas", 3);
             var x = WindowsApi.GetLargestConsoleWindowSize(consoleHandle);
             ConsoleApi.SetConsoleSize(consoleHandle, (short)screenWidth, (short)screenHeight);
 
@@ -69,9 +69,9 @@ namespace ConsoleFps
             badGuySprite.SetRow(row++, "          ");
             badGuySprite.SetRow(row++, "          ");
             badGuySprite.SetRow(row++, "XXXXXXXXXX");
-            badGuySprite.SetRow(row++, "XXXXXXXXXX");
-            badGuySprite.SetRow(row++, "XXXXXXXXXX");
-            badGuySprite.SetRow(row++, "   XXXX   ");
+            badGuySprite.SetRow(row++, "X  O  O  X");
+            badGuySprite.SetRow(row++, "X        X");
+            badGuySprite.SetRow(row++, "  XXXXXX  ");
             badGuySprite.SetRow(row++, "   XXXX   ");
             badGuySprite.SetRow(row++, "XXXXXXXXXX");
             badGuySprite.SetRow(row++, "XXXXXXXXXX");
@@ -85,48 +85,48 @@ namespace ConsoleFps
             badGuySprite.SetRow(row++, "XXX    XXX");
             badGuySprite.SetRow(row++, "XXX    XXX");
 
-            var wallTexture = new Sprite(40, 40);
+            var wallTexture = new Sprite(42, 40);
             row = 0;
-            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XX          XXXX          XXXX        XX");
-            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "    XX      XX     XX     XX     XX     XX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XX     XX     XX     XX     XX     XX     ");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            wallTexture.SetRow(row++, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
 
             var screen = new ScreenBuffer(screenWidth, screenHeight, ' ');
@@ -215,7 +215,7 @@ namespace ConsoleFps
                     executing = false;
                 }
 
-                MoveBadGuy(badGuy, map, speedAdjustFactor);
+                MoveBadGuy(badGuy, map, speedAdjustFactor*2);
                 //isAlive = !((int)player.X == (int)badGuy.X && (int)player.Y == (int)badGuy.Y);
             }
 
